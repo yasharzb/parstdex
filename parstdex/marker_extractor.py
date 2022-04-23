@@ -1,4 +1,5 @@
 import pprint
+import time
 
 from parstdex.utils.tokenizer import tokenize_words
 import textspan
@@ -9,6 +10,8 @@ from parstdex.utils.spans import create_spans
 from parstdex.utils.spans import merge_spans
 from parstdex.utils.word_to_value import ValueExtractor
 from parstdex.utils.deprecation import deprecated
+
+from datetime_determination_util import *
 
 
 class MarkerExtractor(object):
@@ -32,7 +35,8 @@ class MarkerExtractor(object):
         """
 
         # apply normalizer on input sentence
-        normalized_sentence = self.normalizer.normalize_cumulative(input_sentence)
+        normalized_sentence = self.normalizer.normalize_cumulative(
+            input_sentence)
 
         # Create spans
         output_raw, spans = create_spans(self.regexes, normalized_sentence)
@@ -64,7 +68,8 @@ class MarkerExtractor(object):
         spans = self.extract_span(input_sentence)
         for key in spans.keys():
             spans_list = spans[key]
-            markers[key] = {str(span): input_sentence[span[0]: span[1]] for span in spans_list}
+            markers[key] = {str(span): input_sentence[span[0]: span[1]]
+                            for span in spans_list}
 
         return markers
 
@@ -84,11 +89,15 @@ class MarkerExtractor(object):
         time_spans = spans['time']
         date_spans = spans['date']
 
-        time_values = [self.value_extractor.compute_time_value(input_sentence[e[0]:e[1]]) for e in time_spans]
-        date_values = [self.value_extractor.compute_date_value(input_sentence[e[0]:e[1]]) for e in date_spans]
+        time_values = [self.value_extractor.compute_time_value(
+            input_sentence[e[0]:e[1]]) for e in time_spans]
+        date_values = [self.value_extractor.compute_date_value(
+            input_sentence[e[0]:e[1]]) for e in date_spans]
 
-        values['time'] = {str(span): str(value) for span, value in zip(time_spans, time_values)}
-        values['date'] = {str(span): str(value) for span, value in zip(date_spans, date_values)}
+        values['time'] = {str(span): str(value)
+                          for span, value in zip(time_spans, time_values)}
+        values['date'] = {str(span): str(value)
+                          for span, value in zip(date_spans, date_values)}
 
         return values
 
@@ -144,16 +153,50 @@ class MarkerExtractor(object):
                 if span[0] >= ner_span[0] and span[1] <= ner_span[1]:
                     if span[0] == ner_span[0]:
                         if ner_span in time_spans:
-                            ners.append((input_sentence[span[0]:span[1]], 'B-TIM'))
+                            ners.append(
+                                (input_sentence[span[0]:span[1]], 'B-TIM'))
                         elif ner_span in date_spans:
-                            ners.append((input_sentence[span[0]:span[1]], 'B-DAT'))
+                            ners.append(
+                                (input_sentence[span[0]:span[1]], 'B-DAT'))
                     else:
                         if ner_span in time_spans:
-                            ners.append((input_sentence[span[0]:span[1]], 'I-TIM'))
+                            ners.append(
+                                (input_sentence[span[0]:span[1]], 'I-TIM'))
                         elif ner_span in date_spans:
-                            ners.append((input_sentence[span[0]:span[1]], 'I-DAT'))
+                            ners.append(
+                                (input_sentence[span[0]:span[1]], 'I-DAT'))
                     chosen = True
                     break
             if not chosen:
                 ners.append((input_sentence[span[0]:span[1]], 'O'))
         return ners
+
+    def extract_datetime_tokens(self, input_sentence: str):
+        values = self.extract_value(input_sentence)
+        tokens = []
+        date_spans = sorted(list(values['date'].keys()))
+        time_spans = sorted(list(values['time'].keys()))
+        date_time_dict = group_date_time(date_spans, time_spans)
+        for date in date_time_dict.keys():
+            date_txt = values['date'][date]
+            date_type = det_type(date_txt)
+            if date_type == DatetimeType.CRONTIME:
+                datetime_value = evaluate_crontime(date_txt)
+                tokens.append(DatetimeToken(date_type, date_txt, date, datetime_value))
+            for time_k in date_time_dict[date]:
+                time_txt = values['time'][time_k]
+                if date_type != DatetimeType.CRONTIME:
+                    datetime_type, datetime_value = evaluate_datetime(date_txt, time_txt)
+                    if time_k[0] == date[1]:
+                        datetime_txt = date_txt + ' ' + time_txt
+                        datetime_span = (date[0], time_k[1])
+                    else:
+                        datetime_txt = time_txt
+                        datetime_span = time_k
+                else:
+                    datetime_span = time_k
+                    datetime_txt = time_txt
+                    # datetime_type = 
+                tokens.append(DatetimeToken(
+                    datetime_type, datetime_txt, datetime_span, datetime_value))
+        return tokens

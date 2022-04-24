@@ -82,12 +82,18 @@ def group_date_time(date_spans: list, time_spans: list):
 
 def det_type(text: str) -> DatetimeType:
     # TODO Regex, pattern ....
-    # duration_start_markers_rgx = 'از'
-    # duration_end_markers_rgx = 'تا|لغایت|الی'
-    # x = re.search(f"^.*({duration_start_markers_rgx}).*({duration_end_markers_rgx}).*$", text)
-    # print(x)
-    type: DatetimeToken
-    return type
+
+    # Searching for crontime:
+    cron_rgx = ['ها', 'هر', 'سالانه', 'سالیانه', 'ماهانه', 'ماهیانه', 'روزانه']
+    for rgx in cron_rgx:
+        if rgx in text:
+            return DatetimeType.CRONTIME
+    duration_start_markers_rgx = 'از'
+    duration_end_markers_rgx = 'تا|لغایت|الی'
+    x = re.search(f"^.*({duration_start_markers_rgx}).*({duration_end_markers_rgx}).*$", text)
+    if x is not None:
+        return DatetimeType.DURATION
+    return DatetimeType.EXACT
 
 
 def evaluate_datetime(date_txt: str, time_txt: str):

@@ -2,6 +2,7 @@ import enum
 import json
 import re
 
+
 class DatetimeType(enum.Enum):
     EXACT = -1
     DURATION = [-1, -1]
@@ -74,18 +75,18 @@ def group_date_time(date_spans: list, time_spans: list):
             else:
                 if ds.get_rtail(next_head).contains(ts):
                     time_list.append(ts.list)
-        j += 1
+        # j += 1
         date_time_dict[ds.list] = time_list
     return date_time_dict
 
 
-def det_type(text: str):
+def det_type(text: str) -> DatetimeType:
     # TODO Regex, pattern ....
-    duration_start_markers_rgx = 'از'
-    duration_end_markers_rgx = 'تا|لغایت|الی'
-    x = re.search(f"^.*({duration_start_markers_rgx}).*({duration_end_markers_rgx}).*$", text)
-    print(x)
-    type = None
+    # duration_start_markers_rgx = 'از'
+    # duration_end_markers_rgx = 'تا|لغایت|الی'
+    # x = re.search(f"^.*({duration_start_markers_rgx}).*({duration_end_markers_rgx}).*$", text)
+    # print(x)
+    type: DatetimeToken
     return type
 
 

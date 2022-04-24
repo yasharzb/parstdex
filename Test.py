@@ -12,15 +12,17 @@ sentence_list = ['دیروز درست در ساعت پنج و چهل و یک د�
                  'یاشار از امروز ساعت ۹ شب تا دوشنبه ساعت ۷ عصر در حال فتح آتن است',
                  'من ساعت ۷ عصر ۳شنبه و همچنین ۴شنبه و همچنین روز ۵شنبه ساعت ۱۲ ظهر کلاس دارم',
                  'من شنبه ساعت ۷ عصر و همچنین ساعت ۸ صبح و ساعت ۲ بعدازهظر چهارشنبه درگیر فتح قسطنطنیه هستم',
-                 'از فردا ساعت ۵ تا جمعه ساعت ۶ انتخابات در جریان است'
+                 'از فردا ساعت ۵ تا جمعه ساعت ۶ انتخابات در جریان است',
+                 'من ۳شنبه ساعت ۵ و همچنین ۴شنبه ساعت ۷ به مدرسه می‌روم',
+                 'ساعت ۴ و  ساعت ۵ و سی روز ۴شنبه خورشیدگرفتگی پیش رو است'
                  ]
 
-# for sentence in sentence_list[8:9]:
-#     datetime_dict, values = model.extract_test(sentence)
-#     print(datetime_dict)
-#     for key in values:
-#         print(f'=={key}==')
-#         print(values[key])
-#     print('\n###\n')
-pat = Patterns.getInstance()
-print(pat.cumulative_annotations_keys)
+for sentence in sentence_list[8:9]:
+    datetime_dict, values = model.extract_test(sentence)
+    print(datetime_dict)
+    for key in values:
+        print(f'=={key}==')
+        print(values[key])
+    print('\n###\n')
+# pat = Patterns.getInstance()
+# print(pat.cumulative_annotations_keys)

@@ -1,5 +1,6 @@
 import pprint
 import time
+from turtle import st
 
 from parstdex.utils.tokenizer import tokenize_words
 import textspan
@@ -11,7 +12,7 @@ from parstdex.utils.spans import merge_spans
 from parstdex.utils.word_to_value import ValueExtractor
 from parstdex.utils.deprecation import deprecated
 
-from datetime_determination_util import *
+from parstdex.datetime_determination_util import *
 
 
 class MarkerExtractor(object):
@@ -200,3 +201,10 @@ class MarkerExtractor(object):
                 tokens.append(DatetimeToken(
                     datetime_type, datetime_txt, datetime_span, datetime_value))
         return tokens
+    
+    def extract_test(self, input_sentence: str):
+        values = self.extract_value(input_sentence)
+        date_spans = list(values['date'].keys())
+        time_spans = list(values['time'].keys())
+        date_time_dict = group_date_time(date_spans, time_spans)
+        return date_time_dict, values

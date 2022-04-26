@@ -17,12 +17,19 @@ sentence_list = ['دیروز درست در ساعت پنج و چهل و یک د�
                  'ساعت ۴ و  ساعت ۵ و سی روز ۴شنبه خورشیدگرفتگی پیش رو است'
                  ]
 
-for sentence in sentence_list[8:9]:
+for sentence in sentence_list[3:4]:
     datetime_dict, values = model.extract_test(sentence)
     print(datetime_dict)
     for key in values:
         print(f'=={key}==')
         print(values[key])
+        for value in values[key].values():
+            print(value)
+            print(model.det_test(value))
+            print()
+    # Currently only supports when time and date dictionaries match in size and correspond to each other
+    for (k1, v1), (k2, v2) in zip(values['date'].items(), values['time'].items()):
+        model.eval_date_time_test(v1, v2)
     print('\n###\n')
 # pat = Patterns.getInstance()
 # print(pat.cumulative_annotations_keys)

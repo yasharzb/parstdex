@@ -1,6 +1,8 @@
 import enum
 import json
 import re
+import jdatetime
+import datetime
 
 
 class DatetimeType(enum.Enum):
@@ -88,9 +90,8 @@ def det_type(text: str) -> DatetimeType:
     for rgx in cron_rgx:
         if rgx in text:
             return DatetimeType.CRONTIME
-    duration_start_markers_rgx = 'از'
     duration_end_markers_rgx = 'تا|لغایت|الی'
-    x = re.search(f"^.*({duration_start_markers_rgx}).*({duration_end_markers_rgx}).*$", text)
+    x = re.search(f"^.*({duration_end_markers_rgx}).*$", text)
     if x is not None:
         return DatetimeType.DURATION
     return DatetimeType.EXACT
@@ -98,6 +99,16 @@ def det_type(text: str) -> DatetimeType:
 
 def evaluate_datetime(date_txt: str, time_txt: str):
     # Evaluate the aboslute value of the corresponding date and time
+    time_parts = time_txt.split(':')
+    x = re.search("^[0-9]+/[0-9]+/[0-9]+$", date_txt)
+    if x is not None:
+        print("date: ")
+        date_parts = date_txt.split('/')
+        greg_date = jdatetime.JalaliToGregorian(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]))
+        print(greg_date.gyear, greg_date.gmonth, greg_date.gday)
+        greg = datetime.datetime(greg_date.gyear, greg_date.gmonth, greg_date.gday, int(time_parts[0]), int(time_parts[1]),
+                                 int(time_parts[2]))
+        print(greg.timestamp())
     return
 
 

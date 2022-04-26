@@ -208,3 +208,9 @@ class MarkerExtractor(object):
         time_spans = list(values['time'].keys())
         date_time_dict = group_date_time(date_spans, time_spans)
         return date_time_dict, values
+
+    def det_test(self, string: str):
+        return det_type(string)
+
+    def eval_date_time_test(self, date: str, time: str):
+        evaluate_datetime(date, time)

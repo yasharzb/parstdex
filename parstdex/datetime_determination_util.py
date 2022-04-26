@@ -77,8 +77,18 @@ def group_date_time(date_spans: list, time_spans: list):
             else:
                 if ds.get_rtail(next_head).contains(ts):
                     time_list.append(ts.list)
-        # j += 1
         date_time_dict[ds.list] = time_list
+    if len(time_spans) != 0:
+        if ds_dir[0] != 0:
+            for i in range(1, len(date_spans)):
+                if ds_dir[i] == 0:
+                    ds_dir[i] = ds_dir[i - 1]
+                    date_time_dict[date_spans[i]] = date_time_dict[date_spans[i - 1]]
+        else:
+            for i in range(len(date_spans) - 2, -1, -1):
+                if ds_dir[i] == 0:
+                    ds_dir[i] = ds_dir[i + 1]
+                    date_time_dict[date_spans[i]] = date_time_dict[date_spans[i + 1]]
     return date_time_dict
 
 

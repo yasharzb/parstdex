@@ -13,6 +13,7 @@ from parstdex.utils.word_to_value import ValueExtractor
 from parstdex.utils.deprecation import deprecated
 
 from parstdex.datetime_determination_util import *
+from typing import List
 
 
 class MarkerExtractor(object):
@@ -175,33 +176,19 @@ class MarkerExtractor(object):
     def extract_datetime_tokens(self, input_sentence: str):
         values = self.extract_value(input_sentence)
         tokens = []
-        date_spans = sorted(list(values['date'].keys()))
-        time_spans = sorted(list(values['time'].keys()))
-        date_time_dict = group_date_time(date_spans, time_spans)
-        for date in date_time_dict.keys():
-            date_txt = values['date'][date]
-            date_type = det_type(date_txt)
-            if date_type == DatetimeType.CRONTIME:
-                datetime_value = evaluate_crontime(date_txt)
-                tokens.append(DatetimeToken(date_type, date_txt, date, datetime_value))
-            for time_k in date_time_dict[date]:
-                time_txt = values['time'][time_k]
-                if date_type != DatetimeType.CRONTIME:
-                    datetime_type, datetime_value = evaluate_datetime(date_txt, time_txt)
-                    if time_k[0] == date[1]:
-                        datetime_txt = date_txt + ' ' + time_txt
-                        datetime_span = (date[0], time_k[1])
-                    else:
-                        datetime_txt = time_txt
-                        datetime_span = time_k
-                else:
-                    datetime_span = time_k
-                    datetime_txt = time_txt
-                    # datetime_type = 
-                tokens.append(DatetimeToken(
-                    datetime_type, datetime_txt, datetime_span, datetime_value))
+        date_spans = list(values['date'].keys())
+        time_spans = list(values['time'].keys())
+        datetime_dict = group_date_time(date_spans, time_spans)
+        ## TODO det_type
+        ## TODO evaluate_time
+        for i in range(len(tokens)):
+            token: DatetimeToken = tokens[i]
+            if token.type == DatetimeType.DURATION:
+                prev_token: DatetimeToken = tokens[i - 1]
+                token.value = [prev_token.value, token.value]
+        tokens = [tokens[i] for i in range(len(tokens) - 1) if tokens[i + 1].type != DatetimeType.DURATION]
         return tokens
-    
+
     def extract_test(self, input_sentence: str):
         values = self.extract_value(input_sentence)
         date_spans = list(values['date'].keys())

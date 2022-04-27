@@ -3,8 +3,9 @@ import json
 import re
 import jdatetime
 import datetime
+
+import unidecode as unidecode
 from dateutil import relativedelta
-from unidecode import unidecode
 
 persian_months = {'فروردین': 1,
                   'اردیبهشت': 2,
@@ -159,7 +160,7 @@ def det_type(date_txt: str) -> DatetimeType:
     return DatetimeType.EXACT
 
 
-def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_txt: str = None, date_start: str = None):
+def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_txt: str = None):
     # Evaluate the aboslute value of the corresponding date and time
     yesterday_tomorrow_today = ['دیروز', 'روز گذشته', 'روز پیش', 'فردا', 'امروز']
     years = ['سال پیش', 'سال قبل', 'سال گذشته', 'سال بعد', 'سال آینده']
@@ -168,84 +169,65 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
         time_parts = time_txt.split(':')
     if date_txt is not None:
         x = re.search("^[0-9]+/[0-9]+/[0-9]+$", date_txt)
-    if datetime_type == DatetimeType.EXACT:
-        print("EXACTTT")
-        if date_txt is not None and x is not None:
-            print("date: ")
-            date_parts = date_txt.split('/')
-            greg_date = jdatetime.JalaliToGregorian(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]))
-            print(greg_date.gyear, greg_date.gmonth, greg_date.gday)
-            if time_txt is not None:
-                greg = datetime.datetime(greg_date.gyear, greg_date.gmonth, greg_date.gday, int(time_parts[0]),
-                                         int(time_parts[1]), int(time_parts[2]))
-            else:
-                greg = datetime.datetime(greg_date.gyear, greg_date.gmonth, greg_date.gday, int(time_parts[0]),
-                                         0, 0)
-            return greg.timestamp()
-        elif date_txt is not None:
-            if time_txt is None:
-                hour, minute, second = 0, 0, 0
-            else:
-                hour, minute, second = int(time_parts[0]), int(time_parts[1]), int(time_parts[2])
-            for tom_yest_tod in yesterday_tomorrow_today:
-                if tom_yest_tod in date_txt:
-                    print("date: ")
-                    if tom_yest_tod == 'فردا':
-                        sign = 1
-                    elif tom_yest_tod == 'امروز':
-                        sign = 0
-                    else:
-                        sign = -1
-                    greg = datetime.datetime.now() + sign * datetime.timedelta(days=1)
-                    if time_txt is not None:
-                        greg = greg.replace(hour=hour, minute=minute, second=second)
-                    print(greg)
-                    print(int(greg.timestamp()))
-            for year_pattern in years:
-                if year_pattern in date_txt:
-                    if re.search("^[0-9]+.*$", date_txt) is not None:
-                        number = int(date_txt.split(' ')[0])
-                    else:
-                        number = 1
-                    if year_pattern == 'سال بعد' or year_pattern == 'سال آینده':
-                        sign = 1
-                    else:
-                        sign = -1
-                    greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=12 * number)
-                    if time_txt is not None:
-                        greg = greg.replace(hour=hour, minute=minute, second=second)
-                    print(greg)
-                    print(int(greg.timestamp()))
-            for month_pattern in months:
-                if month_pattern in date_txt:
-                    if re.search("^[0-9]+.*$", date_txt) is not None:
-                        number = int(date_txt.split(' ')[0])
-                    else:
-                        number = 1
-                    if month_pattern == 'ماه بعد' or month_pattern == 'ماه آینده':
-                        sign = 1
-                    else:
-                        sign = -1
-                    greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=number)
-                    if time_txt is not None:
-                        greg = greg.replace(hour=hour, minute=minute, second=second)
-                    print(greg)
-                    print(int(greg.timestamp()))
-            if date_txt == 'پارسال':
-                print("date: ")
-                greg = datetime.datetime.now() + relativedelta.relativedelta(months=12)
+    assert datetime_type == DatetimeType.EXACT
+    if date_txt is not None and x is not None:
+        date_parts = date_txt.split('/')
+        greg_date = jdatetime.JalaliToGregorian(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]))
+        if time_txt is not None:
+            greg = datetime.datetime(greg_date.gyear, greg_date.gmonth, greg_date.gday, int(time_parts[0]),
+                                     int(time_parts[1]), int(time_parts[2]))
+        else:
+            greg = datetime.datetime(greg_date.gyear, greg_date.gmonth, greg_date.gday, int(time_parts[0]),
+                                     0, 0)
+        return greg.timestamp()
+    elif date_txt is not None:
+        if time_txt is None:
+            hour, minute, second = 0, 0, 0
+        else:
+            hour, minute, second = int(time_parts[0]), int(time_parts[1]), int(time_parts[2])
+        for tom_yest_tod in yesterday_tomorrow_today:
+            if tom_yest_tod in date_txt:
+                if tom_yest_tod == 'فردا':
+                    sign = 1
+                elif tom_yest_tod == 'امروز':
+                    sign = 0
+                else:
+                    sign = -1
+                greg = datetime.datetime.now() + sign * datetime.timedelta(days=1)
                 if time_txt is not None:
                     greg = greg.replace(hour=hour, minute=minute, second=second)
-                print(greg)
-                print(int(greg.timestamp()))
-            return greg.timestamp()
-
-
-    else:
-        # should be durstion
-        pass
-
-    return
+        for year_pattern in years:
+            if year_pattern in date_txt:
+                if re.search("^[0-9]+.*$", date_txt) is not None:
+                    number = int(date_txt.split(' ')[0])
+                else:
+                    number = 1
+                if year_pattern == 'سال بعد' or year_pattern == 'سال آینده':
+                    sign = 1
+                else:
+                    sign = -1
+                greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=12 * number)
+                if time_txt is not None:
+                    greg = greg.replace(hour=hour, minute=minute, second=second)
+        for month_pattern in months:
+            if month_pattern in date_txt:
+                if re.search("^[0-9]+.*$", date_txt) is not None:
+                    number = int(date_txt.split(' ')[0])
+                else:
+                    number = 1
+                if month_pattern == 'ماه بعد' or month_pattern == 'ماه آینده':
+                    sign = 1
+                else:
+                    sign = -1
+                greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=number)
+                if time_txt is not None:
+                    greg = greg.replace(hour=hour, minute=minute, second=second)
+        if date_txt == 'پارسال':
+            greg = datetime.datetime.now() + relativedelta.relativedelta(months=12)
+            if time_txt is not None:
+                greg = greg.replace(hour=hour, minute=minute, second=second)
+            print(int(greg.timestamp()))
+        return greg.timestamp()
 
 
 def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
@@ -345,7 +327,8 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
 
         print(cron_stamp)
         return cron_stamp
-    elif re.search(f"^.*{har}[ ]+.*شنبه.*$", date_txt) is not None or re.search(f"^.*{har}[ ]+جمعه.*$", date_txt) is not None:
+    elif re.search(f"^.*{har}[ ]+.*شنبه.*$", date_txt) is not None or re.search(f"^.*{har}[ ]+جمعه.*$",
+                                                                                date_txt) is not None:
         cron_stamp = "* * " + cron_stamp
         week_days = []
         if re.search(f"^.*{va}.*$", date_txt) is not None:

@@ -27,27 +27,19 @@ sentence_list = ['دیروز درست در ساعت پنج و چهل و یک د�
                  'من ساعت ۴ بعد از ظهر روزهای سه‌شنبه ، چهارشنبه و همچنین پنجشنبه کلاس دارم'
                  ]
 
+sentences = ['دیروز درست در ساعت پنج و چهل و یک دقیقه صدای گوش خراشی از چهارراه نزدیک خانه به گوش می‌رسید',
+             'اتفاقات امروز تا دو روز دیگر می‌تواند برای مردم ایران بسیار حساس باشد',
+             'کامران هر روز هفته به مدرسه می‌رود',
+             'نخستین بازی‌های جام‌جهانی در ساعت ۱ بعدازظهر، ۶ عصر، ۷ عصر و ۱۰ شب روز ۳۰ آبان ۱۴۰۱ برگزار خواهد شد.',
+             ]
 
-# for sentence in sentence_list[12:13]:
-#     datetime_dict, values = model.extract_test(sentence)
-#     print(datetime_dict)
-#     for key in values:
-#         print(f'=={key}==')
-#         print(values[key])
-#         for value in values[key].values():
-#             print(value)
-#             print(model.det_test(value))
-#             print()
-#     # Currently only supports when time and date dictionaries match in size and correspond to each other
-#     #for (k1, v1), (k2, v2) in zip(values['date'].items(), values['time'].items()):
-#     #    model.eval_date_time_test(model.det_test(v2), v1, v2)
-#     print('\n###\n')
-# # pat = Patterns.getInstance()
-# # print(pat.cumulative_annotations_keys)
 
 def get_tokens(sentence: str):
     tokens = model.extract_datetime_tokens(sentence)
     print(tokens)
 
 
-get_tokens('هر 2 روز یکبار صدای گوش خراشی به گوش می‌رسید')
+for i in range(len(sentences)):
+    sentence = sentences[i]
+    print(f'==S{i}==')
+    get_tokens(sentence)

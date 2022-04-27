@@ -184,12 +184,13 @@ class MarkerExtractor(object):
         for date in datetime_dict.keys():
             date_token_types[date] = det_type(markers['date'][date])
         for date in datetime_dict.keys():
+            token_type = date_token_types[date]
             if len(datetime_dict[date]) == 0:
-                token = _handle_semi_determined_tokens(date_token_types, markers, values, date)
+                token = _handle_semi_determined_tokens(token_type, markers, values, date)
                 tokens.append(token)
             else:
                 for time_k in datetime_dict[date]:
-                    token = _handle_semi_determined_tokens(date_token_types, markers, values, date, time_k)
+                    token = _handle_semi_determined_tokens(token_type, markers, values, date, time_k)
                     tokens.append(token)
         tokens_count = len(tokens)
         for i in range(tokens_count):
@@ -216,18 +217,15 @@ class MarkerExtractor(object):
         evaluate_datetime(datetime_type, date, time)
 
 
-def _handle_semi_determined_tokens(date_token_types: dict, markers: dict, values: dict, date: str, time_k: str = None):
-    token_type = date_token_types[date]
+def _handle_semi_determined_tokens(token_type: DatetimeType, markers: dict, values: dict, date: str,
+                                   time_k: str = None):
     date_txt = markers['date'][date]
     time_txt = values['time'][time_k] if time_k else None
     token: DatetimeToken
     if token_type == DatetimeType.CRONTIME:
-        print(date_txt, time_txt)
         dt_value = evaluate_crontime(date_txt, time_txt)
         token = DatetimeToken(token_type, dt_value, date_txt, date, time_txt, time_k)
-    elif token_type == DatetimeType.EXACT:
+    else:
         dt_value = evaluate_datetime(token_type, date_txt, time_txt)
         token = DatetimeToken(token_type, dt_value, date_txt, date, time_txt, time_k)
-    else:
-        token = None
     return token

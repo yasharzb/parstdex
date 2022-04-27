@@ -186,5 +186,6 @@ def extract_datetime_tokens(self, input_sentence: str) -> list
 
 ### نمونه نتایج
 
+مثال‌هایی در [فایل تست](Test.py) موجود است. می‌توانید آن را اجرا کرده و نتایج را مشاهده کنید.
 
 </div>

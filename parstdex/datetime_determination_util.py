@@ -18,6 +18,14 @@ persian_months = {'فروردین': 1,
                   'بهمن': 11,
                   'اسفند': 12}
 
+persian_days = {'شنبه': (1, 'SAT'),
+        'یکشنبه': (2, 'SUN'),
+        'دوشنبه': (3, 'MON'),
+        'سه‌شنبه': (4, 'TUS'),
+        'چهارشنبه': (5, 'WED'),
+        'پنجشنبه': (6, 'THU'),
+        'جمعه': (7, 'FRI')}
+
 
 class DatetimeType(enum.Enum):
     EXACT = -1
@@ -125,6 +133,7 @@ def evaluate_datetime(datetime_type: str, date_txt: str = None, time_txt: str = 
     # Evaluate the aboslute value of the corresponding date and time
     yesterday_tomorrow_today = ['دیروز', 'روز گذشته', 'روز پیش', 'فردا', 'امروز']
     years = ['سال پیش', 'سال قبل', 'سال گذشته', 'سال بعد', 'سال آینده']
+    months = ['ماه پیش', 'ماه قبل', 'ماه گذشته', 'ماه بعد', 'ماه آینده']
     if time_txt is not None:
         time_parts = time_txt.split(':')
     if date_txt is not None:
@@ -157,7 +166,7 @@ def evaluate_datetime(datetime_type: str, date_txt: str = None, time_txt: str = 
                         sign = 0
                     else:
                         sign = -1
-                    greg = datetime.datetime.now() + sign*datetime.timedelta(days=1)
+                    greg = datetime.datetime.now() + sign * datetime.timedelta(days=1)
                     if time_txt is not None:
                         greg = greg.replace(hour=hour, minute=minute, second=second)
                     print(greg)
@@ -173,6 +182,21 @@ def evaluate_datetime(datetime_type: str, date_txt: str = None, time_txt: str = 
                     else:
                         sign = -1
                     greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=12 * number)
+                    if time_txt is not None:
+                        greg = greg.replace(hour=hour, minute=minute, second=second)
+                    print(greg)
+                    print(int(greg.timestamp()))
+            for month_pattern in months:
+                if month_pattern in date_txt:
+                    if re.search("^[0-9]+.*$", date_txt) is not None:
+                        number = int(date_txt.split(' ')[0])
+                    else:
+                        number = 1
+                    if month_pattern == 'ماه بعد' or month_pattern == 'ماه آینده':
+                        sign = 1
+                    else:
+                        sign = -1
+                    greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=number)
                     if time_txt is not None:
                         greg = greg.replace(hour=hour, minute=minute, second=second)
                     print(greg)
@@ -195,5 +219,62 @@ def evaluate_datetime(datetime_type: str, date_txt: str = None, time_txt: str = 
     return
 
 
-def evaluate_crontime(date_txt: str):
+def evaluate_crontime(date_txt: str, time_txt: str = None):
+    # TODO this needs evaluation and improvement, it does not cover many cases
+    month_pat = 'ماه'
+    day = "روز"
+    days_pat = "روزها"
+    har = "هر"
+    va = "و"
+    ta = "تا"
+    if time_txt is None:
+        cron_stamp = "* *"
+    else:
+        cron_stamp = time_txt.split(':')[0] + " " + time_txt.split(':')[1]
+    if re.search(f"^.*{har}[ ]+{month_pat}.*$") is not None:
+        # dealing with monthly events
+        if re.search(f"^{day}[ ]+[0-9]+[ ]+{har}.+$", date_txt) is not None:
+            day_number = date_txt.split()[1]
+        else:
+            # multiple days 0__0
+            day_number = "*"
+        cron_stamp = day_number + " " + cron_stamp
+        months = []
+        for month in persian_months.keys():
+            if month in date_txt:
+                months.append(month)
+        if len(months) > 1:
+            month_number = ""
+            for month in months:
+                month_number = month_number + str(persian_months[month]) + ','
+            month_number = month_number[:-1]
+        elif len(months) == 1:
+            month_number = str(persian_months[months[0]])
+        else:
+            month_number = "*"
+        cron_stamp = month_number + " " + cron_stamp
+        week_days = []
+        if re.search(f"^.*{ta}.*$", date_txt) is not None:
+            parts = date_txt.split()
+            for i in range(len(parts)):
+                if parts[i] == ta:
+                    if parts[i-1] in persian_days.keys():
+                        week_days.append(parts[i-1])
+                        week_days.append(parts[i+1])
+        if len(week_days) > 1:
+            week_number = ""
+            for weekday in week_days:
+                week_number = week_number + str(persian_days[weekday]) + '-'
+            week_number = month_number[:-1]
+        elif len(months) == 1:
+            week_number = str(persian_days[week_days[0]])
+        else:
+            week_number = "*"
+        cron_stamp = week_number + " " + cron_stamp
+        print(cron_stamp)
+    else:
+        # not monthly
+        # i'm sleepy
+        print("ZzZzzz")
+        pass
     return

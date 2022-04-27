@@ -13,7 +13,10 @@ sentence_list = ['دیروز درست در ساعت پنج و چهل و یک د�
                  'دو ماه گذشته رفتیم سفر',
                  'پنج خرداد ساعت ۳ رفتیم بیرون',
                  'امروز ساعت ۵  به خانه برمی‌گردیم',
-                 'فردا هوا خوب است',
+                 'فردا ساعت ۲ بعد از ظهر هوا خوب است',
+                 'دو ماه قبل پنج خرداد از زندان آزاد شد',
+                 'هر دو ماه یکبار ساعت ۵ عصر پیاده روی می‌کند',
+                 'هر روز بین دوشنبه تا جمعه ساعت ۱۲ بامداد',
                  'من ۳شنبه و همچنین روز ۴شنبه چهار و چهل دقیقه بعدازظهر کلاس دارم',
                  'یاشار از امروز ساعت ۹ شب تا دوشنبه ساعت ۷ عصر در حال فتح آتن است',
                  'من ساعت ۷ عصر ۳شنبه و همچنین ۴شنبه و همچنین روز ۵شنبه ساعت ۱۲ ظهر کلاس دارم',
@@ -25,7 +28,7 @@ sentence_list = ['دیروز درست در ساعت پنج و چهل و یک د�
                  ]
 
 
-for sentence in sentence_list[9:10]:
+for sentence in sentence_list[12:13]:
     datetime_dict, values = model.extract_test(sentence)
     print(datetime_dict)
     for key in values:
@@ -36,8 +39,8 @@ for sentence in sentence_list[9:10]:
             print(model.det_test(value))
             print()
     # Currently only supports when time and date dictionaries match in size and correspond to each other
-    for (k1, v1), (k2, v2) in zip(values['date'].items(), values['time'].items()):
-        model.eval_date_time_test(model.det_test(v2), v1, v2)
+    #for (k1, v1), (k2, v2) in zip(values['date'].items(), values['time'].items()):
+    #    model.eval_date_time_test(model.det_test(v2), v1, v2)
     print('\n###\n')
 # pat = Patterns.getInstance()
 # print(pat.cumulative_annotations_keys)

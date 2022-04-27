@@ -166,9 +166,9 @@ def det_type(date_txt: str) -> DatetimeType:
     return DatetimeType.EXACT, None
 
 
-def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_txt: str = None, start_date: int = None):
+def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_txt: str = None):
     # Evaluate the aboslute value of the corresponding date and time
-    yesterday_tomorrow_today = ['دیروز', 'روز گذشته', 'روز پیش', 'روز دیگر', 'فردا', 'امروز', 'روز بعد']
+    yesterday_tomorrow_today = ['دیروز', 'روز گذشته', 'روز پیش', 'روز دیگر', 'فردا', 'امروز', 'روز بعد', 'روز آینده']
     years = ['سال پیش', 'سال قبل', 'سال گذشته', 'سال بعد', 'سال آینده']
     months = ['ماه پیش', 'ماه قبل', 'ماه گذشته', 'ماه بعد', 'ماه آینده']
     if time_txt is not None:
@@ -197,7 +197,7 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
                     number = int(date_txt.split(' ')[0])
                 else:
                     number = 1
-                if tom_yest_tod == 'فردا':
+                if tom_yest_tod == 'فردا' or tom_yest_tod == 'روز آینده' or tom_yest_tod == 'روز دیگر' or tom_yest_tod == 'روز بعد':
                     sign = 1
                 elif tom_yest_tod == 'امروز':
                     sign = 0
@@ -206,6 +206,8 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
                 greg = datetime.datetime.now() + sign * datetime.timedelta(days=number)
                 if time_txt is not None:
                     greg = greg.replace(hour=hour, minute=minute, second=second)
+                else:
+                    greg = greg.replace(hour=23, minute=59, second=59)
                 return int(greg.timestamp())
         for year_pattern in years:
             if year_pattern in date_txt:
@@ -213,16 +215,15 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
                     number = int(date_txt.split(' ')[0])
                 else:
                     number = 1
-                if year_pattern == 'سال بعد' or year_pattern == 'سال آینده':
+                if year_pattern == 'سال بعد' or year_pattern == 'سال آینده' or year_pattern == 'سال دیگر':
                     sign = 1
                 else:
                     sign = -1
-                if start_date is None:
-                    greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=12 * number)
-                else:
-                    greg = datetime.datetime.fromtimestamp(start_date) + sign * relativedelta.relativedelta(months=12 * number)
+                greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=12 * number)
                 if time_txt is not None:
                     greg = greg.replace(hour=hour, minute=minute, second=second)
+                else:
+                    greg = greg.replace(hour=23, minute=59, second=59)
                 return int(greg.timestamp())
         for month_pattern in months:
             if month_pattern in date_txt:
@@ -234,12 +235,11 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
                     sign = 1
                 else:
                     sign = -1
-                if start_date is None:
-                    greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=number)
-                else:
-                    greg = datetime.datetime.fromtimestamp(start_date) + sign * relativedelta.relativedelta(months=number)
+                greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=number)
                 if time_txt is not None:
                     greg = greg.replace(hour=hour, minute=minute, second=second)
+                else:
+                    greg = greg.replace(hour=23, minute=59, second=59)
                 return int(greg.timestamp())
         if date_txt == 'پارسال':
             greg = datetime.datetime.now() + relativedelta.relativedelta(months=12)

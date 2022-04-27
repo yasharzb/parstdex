@@ -175,24 +175,22 @@ class MarkerExtractor(object):
 
     def extract_datetime_tokens(self, input_sentence: str):
         values = self.extract_value(input_sentence)
+        markers = self.extract_marker(input_sentence)
         tokens = []
-        date_spans = list(values['date'].keys())
+        date_spans = list(markers['date'].keys())
         time_spans = list(values['time'].keys())
         datetime_dict = group_date_time(date_spans, time_spans)
         date_token_types = {}
         for date in datetime_dict.keys():
-            date_token_types[date] = det_type(values['date'][date])
+            date_token_types[date] = det_type(markers['date'][date])
         for date in datetime_dict.keys():
-            for time_k in datetime_dict[date]:
-                token_type = date_token_types[date]
-                date_txt, time_txt = values['date'][date], values['time'][time_k]
-                if token_type == DatetimeType.CRONTIME:
-                    print(date_txt, time_txt)
-                    dt_value = evaluate_crontime(date_txt, time_txt)
-                    tokens.append(DatetimeToken(token_type, date_txt, time_txt, date, time_k, dt_value))
-                elif token_type == DatetimeType.EXACT:
-                    dt_value = evaluate_datetime(token_type, date_txt, time_txt)
-                    tokens.append(DatetimeToken(token_type, date_txt, time_txt, date, time_k, dt_value))
+            if len(datetime_dict[date]) == 0:
+                token = _handle_semi_determined_tokens(date_token_types, markers, values, date)
+                tokens.append(token)
+            else:
+                for time_k in datetime_dict[date]:
+                    token = _handle_semi_determined_tokens(date_token_types, markers, values, date, time_k)
+                    tokens.append(token)
         tokens_count = len(tokens)
         for i in range(tokens_count):
             token: DatetimeToken = tokens[i]
@@ -214,6 +212,21 @@ class MarkerExtractor(object):
     def det_test(self, string: str):
         return det_type(string)
 
-    def eval_date_time_test(self,datetime_type,  date: str, time: str):
+    def eval_date_time_test(self, datetime_type, date: str, time: str):
         evaluate_datetime(datetime_type, date, time)
 
+
+def _handle_semi_determined_tokens(date_token_types: dict, markers: dict, values: dict, date: str, time_k: str = None):
+    token_type = date_token_types[date]
+    date_txt, time_txt = markers['date'][date], values['time'][time_k]
+    token: DatetimeToken
+    if token_type == DatetimeType.CRONTIME:
+        print(date_txt, time_txt)
+        dt_value = evaluate_crontime(date_txt, time_txt)
+        token = DatetimeToken(token_type, date_txt, time_txt, date, time_k, dt_value)
+    elif token_type == DatetimeType.EXACT:
+        dt_value = evaluate_datetime(token_type, date_txt, time_txt)
+        token = DatetimeToken(token_type, date_txt, time_txt, date, time_k, dt_value)
+    else:
+        token = None
+    return token

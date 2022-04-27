@@ -248,7 +248,6 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
             greg = datetime.datetime.now() + relativedelta.relativedelta(months=12)
             if time_txt is not None:
                 greg = greg.replace(hour=hour, minute=minute, second=second)
-            print(int(greg.timestamp()))
             return int(greg.timestamp())
     else:
         return None
@@ -323,7 +322,6 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
         else:
             week_number = "*"
         cron_stamp = week_number + " " + cron_stamp
-        print(cron_stamp)
         return cron_stamp
     elif re.search(f"^.*{har}.*{day_pat}.*$", date_txt) is not None:
         if re.search(f"^.*{har}[ ]+[0-9۱۲۳۴۵۶۷۸۹۰]+[ ]+{day_pat}.*$", date_txt) is not None:
@@ -350,7 +348,6 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
         # i can't think of examples with weekdays involved so i assume * for it
         cron_stamp = "* " + cron_stamp
 
-        print(cron_stamp)
         return cron_stamp
     elif re.search(f"^.*{har}[ ]+.*شنبه.*$", date_txt) is not None or re.search(f"^.*{har}[ ]+جمعه.*$",
                                                                                 date_txt) is not None:
@@ -377,8 +374,6 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
         else:
             week_number = "*"
         cron_stamp = week_number + " " + cron_stamp
-        print(cron_stamp)
         return cron_stamp
     else:
-        print("* * * * *")
         return "* * * * *"

@@ -39,7 +39,6 @@ def get_tokens(sentence: str):
     print(tokens)
 
 
-for i in range(1, len(sentences)):
+for i in range(len(sentences)):
     sentence = sentences[i]
-    print(f'==S{i}==')
     get_tokens(sentence)

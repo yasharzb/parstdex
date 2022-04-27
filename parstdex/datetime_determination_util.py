@@ -168,7 +168,7 @@ def det_type(date_txt: str) -> DatetimeType:
 
 def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_txt: str = None, start_date: int = None):
     # Evaluate the aboslute value of the corresponding date and time
-    yesterday_tomorrow_today = ['دیروز', 'روز گذشته', 'روز پیش', 'فردا', 'امروز']
+    yesterday_tomorrow_today = ['دیروز', 'روز گذشته', 'روز پیش', 'روز دیگر', 'فردا', 'امروز', 'روز بعد']
     years = ['سال پیش', 'سال قبل', 'سال گذشته', 'سال بعد', 'سال آینده']
     months = ['ماه پیش', 'ماه قبل', 'ماه گذشته', 'ماه بعد', 'ماه آینده']
     if time_txt is not None:
@@ -193,13 +193,17 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
             hour, minute, second = int(time_parts[0]), int(time_parts[1]), int(time_parts[2])
         for tom_yest_tod in yesterday_tomorrow_today:
             if tom_yest_tod in date_txt:
+                if re.search("^[0-9]+.*$", date_txt) is not None:
+                    number = int(date_txt.split(' ')[0])
+                else:
+                    number = 1
                 if tom_yest_tod == 'فردا':
                     sign = 1
                 elif tom_yest_tod == 'امروز':
                     sign = 0
                 else:
                     sign = -1
-                greg = datetime.datetime.now() + sign * datetime.timedelta(days=1)
+                greg = datetime.datetime.now() + sign * datetime.timedelta(days=number)
                 if time_txt is not None:
                     greg = greg.replace(hour=hour, minute=minute, second=second)
                 return int(greg.timestamp())

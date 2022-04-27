@@ -238,6 +238,7 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
                     greg = greg.replace(hour=hour, minute=minute, second=second)
                 print(greg)
                 print(int(greg.timestamp()))
+            return greg.timestamp()
 
 
     else:

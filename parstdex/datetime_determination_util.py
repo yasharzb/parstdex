@@ -272,7 +272,7 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
                         days.add(date_txt[i - 1])
                         days.add(date_txt[i + 1])
         else:
-            days.add("*")
+            days.add("1")
         day_numbers = ""
         for day_part in days:
             day_numbers = day_numbers + day_part + ','

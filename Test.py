@@ -43,3 +43,4 @@ for i in range(len(sentences)):
     sentence = sentences[i]
     print(f'==S{i}==')
     get_tokens(sentence)
+

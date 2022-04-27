@@ -88,9 +88,9 @@ class DatetimeToken:
             self.text += f' {time_txt}'
             time_span = TokenSpan(time_span)
             if date_span.less(time_span):
-                self.span = TokenSpan(f'[{date_span.head},{time_span.tail}]')
+                self.span = TokenSpan(f'[{date_span.head}, {time_span.tail}]')
             else:
-                self.span = TokenSpan(f'[{time_span.head},{date_span.tail}]')
+                self.span = TokenSpan(f'[{time_span.head}, {date_span.tail}]')
         else:
             self.span = date_span
 
@@ -169,7 +169,7 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
         time_parts = time_txt.split(':')
     if date_txt is not None:
         x = re.search("^[0-9]+/[0-9]+/[0-9]+$", date_txt)
-    assert datetime_type == DatetimeType.EXACT
+    #assert datetime_type == DatetimeType.EXACT
     if date_txt is not None and x is not None:
         date_parts = date_txt.split('/')
         greg_date = jdatetime.JalaliToGregorian(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]))

@@ -220,12 +220,13 @@ class MarkerExtractor(object):
 def _handle_semi_determined_tokens(token_type: DatetimeType, markers: dict, values: dict, date: str,
                                    time_k: str = None):
     date_txt = markers['date'][date]
-    time_txt = values['time'][time_k] if time_k else None
+    time_numeric_txt = values['time'][time_k] if time_k else None
+    time_txt = markers['time'][time_k] if time_k else None
     token: DatetimeToken
     if token_type == DatetimeType.CRONTIME:
-        dt_value = evaluate_crontime(date_txt, time_txt)
+        dt_value = evaluate_crontime(date_txt, time_numeric_txt)
         token = DatetimeToken(token_type, dt_value, date_txt, date, time_txt, time_k)
     else:
-        dt_value = evaluate_datetime(token_type, date_txt, time_txt)
+        dt_value = evaluate_datetime(token_type, date_txt, time_numeric_txt)
         token = DatetimeToken(token_type, dt_value, date_txt, date, time_txt, time_k)
     return token

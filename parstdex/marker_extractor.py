@@ -191,11 +191,12 @@ class MarkerExtractor(object):
                 prev_timestamp = None
             token_type = date_token_types[date]
             if len(datetime_dict[date]) == 0:
-                token = _handle_semi_determined_tokens(token_type, markers, values, date, prev_timestamp)
+                token = _handle_semi_determined_tokens(token_type, markers, values, date, prev_timestamp=prev_timestamp)
                 tokens.append(token)
             else:
                 for time_k in datetime_dict[date]:
-                    token = _handle_semi_determined_tokens(token_type, markers, values, date, time_k=time_k)
+                    token = _handle_semi_determined_tokens(token_type, markers, values, date, time_k=time_k,
+                                                           prev_timestamp=prev_timestamp)
                     tokens.append(token)
         tokens_count = len(tokens)
         for i in range(tokens_count):

@@ -4,6 +4,7 @@ import re
 import jdatetime
 import datetime
 from dateutil import relativedelta
+from unidecode import unidecode
 
 persian_months = {'فروردین': 1,
                   'اردیبهشت': 2,
@@ -239,8 +240,6 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
                 print(int(greg.timestamp()))
 
 
-
-
     else:
         # should be durstion
         pass
@@ -278,7 +277,7 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
         for day_part in days:
             day_numbers = day_numbers + day_part + ','
         day_numbers = day_numbers[:-1]
-        cron_stamp = day_numbers + cron_stamp
+        cron_stamp = day_numbers + " " + cron_stamp
 
         months = []
         for month in persian_months.keys():
@@ -302,24 +301,28 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
                     if parts[i - 1] in persian_days.keys():
                         week_days.append(parts[i - 1])
                         week_days.append(parts[i + 1])
+        else:
+            for weekday in date_txt.split():
+                if weekday in persian_days.keys():
+                    week_days.append(weekday)
         if len(week_days) > 1:
             week_number = ""
             for weekday in week_days:
-                week_number = week_number + str(persian_days[weekday]) + ','
-            week_number = month_number[:-1]
-        elif len(months) == 1:
-            week_number = str(persian_days[week_days[0]])
+                week_number = week_number + str(persian_days[weekday][1]) + ','
+            week_number = week_number[:-1]
+        elif len(week_days) == 1:
+            week_number = str(persian_days[week_days[0]][1])
         else:
             week_number = "*"
         cron_stamp = week_number + " " + cron_stamp
         print(cron_stamp)
         return cron_stamp
     elif re.search(f"^.*{har}.*{day_pat}.*$", date_txt) is not None:
-        if re.search(f"^.*{har}[ ]+[0-9]+[ ]+{day_pat}.*$", date_txt) is not None:
+        if re.search(f"^.*{har}[ ]+[0-9۱۲۳۴۵۶۷۸۹۰]+[ ]+{day_pat}.*$", date_txt) is not None:
             for i in range(len(date_txt.split())):
-                if date_txt.split()[i].isnumeric():
-                    if date_txt.split()[i - 1] == har and date_txt.split()[i + 1] == days_pat:
-                        cron_stamp = "*/" + date_txt.split()[i] + cron_stamp
+                if unidecode(date_txt.split()[i]).isnumeric():
+                    if date_txt.split()[i - 1] == har and date_txt.split()[i + 1] == day_pat:
+                        cron_stamp = "*/" + unidecode(date_txt.split()[i]) + " " + cron_stamp
         else:
             cron_stamp = "* " + cron_stamp
         months = []
@@ -339,6 +342,32 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
         # i can't think of examples with weekdays involved so i assume * for it
         cron_stamp = "* " + cron_stamp
 
+        print(cron_stamp)
+        return cron_stamp
+    elif re.search(f"^.*{har}[ ]+.*شنبه.*$", date_txt) is not None or re.search(f"^.*{har}[ ]+جمعه.*$", date_txt) is not None:
+        cron_stamp = "* * " + cron_stamp
+        week_days = []
+        if re.search(f"^.*{va}.*$", date_txt) is not None:
+            parts = date_txt.split()
+            for i in range(len(parts)):
+                if parts[i] == va:
+                    if parts[i - 1] in persian_days.keys():
+                        week_days.append(parts[i - 1])
+                        week_days.append(parts[i + 1])
+        else:
+            for weekday in date_txt.split():
+                if weekday in persian_days.keys():
+                    week_days.append(weekday)
+        if len(week_days) > 1:
+            week_number = ""
+            for weekday in week_days:
+                week_number = week_number + str(persian_days[weekday][1]) + ','
+            week_number = week_number[:-1]
+        elif len(week_days) == 1:
+            week_number = str(persian_days[week_days[0]][1])
+        else:
+            week_number = "*"
+        cron_stamp = week_number + " " + cron_stamp
         print(cron_stamp)
         return cron_stamp
     else:

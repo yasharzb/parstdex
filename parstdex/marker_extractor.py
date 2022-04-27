@@ -199,5 +199,6 @@ class MarkerExtractor(object):
     def det_test(self, string: str):
         return det_type(string)
 
-    def eval_date_time_test(self, date: str, time: str):
-        evaluate_datetime(date, time)
+    def eval_date_time_test(self,datetime_type,  date: str, time: str):
+        evaluate_datetime(datetime_type, date, time)
+

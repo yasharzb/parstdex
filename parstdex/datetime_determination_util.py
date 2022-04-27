@@ -152,16 +152,21 @@ def det_type(date_txt: str) -> DatetimeType:
     cron_rgx = ['ها', 'هر', 'سالانه', 'سالیانه', 'ماهانه', 'ماهیانه', 'روزانه']
     for rgx in cron_rgx:
         if rgx in date_txt:
-            return DatetimeType.CRONTIME
+            return DatetimeType.CRONTIME, None
     duration_end_markers_rgx = 'تا|لغایت|الی'
     x = re.search(f"^.*({duration_end_markers_rgx}).*$", date_txt)
     if x is not None:
-        return DatetimeType.DURATION
-    return DatetimeType.EXACT
+        if len(date_txt.split('تا')) > 1:
+            start_date = date_txt.split('تا')
+        elif len(date_txt.split('لغایت')) > 1:
+            start_date = date_txt.split('لغایت')
+        else:
+            start_date = date_txt.split('الی')
+        return DatetimeType.DURATION, start_date
+    return DatetimeType.EXACT, None
 
 
-def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_txt: str = None,
-                      prev_timestamp: int = None):
+def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_txt: str = None, start_date: int = None):
     # Evaluate the aboslute value of the corresponding date and time
     yesterday_tomorrow_today = ['دیروز', 'روز گذشته', 'روز پیش', 'فردا', 'امروز']
     years = ['سال پیش', 'سال قبل', 'سال گذشته', 'سال بعد', 'سال آینده']
@@ -180,7 +185,7 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
         else:
             greg = datetime.datetime(greg_date.gyear, greg_date.gmonth, greg_date.gday, int(time_parts[0]),
                                      0, 0)
-        return greg.timestamp()
+        return int(greg.timestamp())
     elif date_txt is not None:
         if time_txt is None:
             hour, minute, second = 0, 0, 0
@@ -197,6 +202,7 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
                 greg = datetime.datetime.now() + sign * datetime.timedelta(days=1)
                 if time_txt is not None:
                     greg = greg.replace(hour=hour, minute=minute, second=second)
+                return int(greg.timestamp())
         for year_pattern in years:
             if year_pattern in date_txt:
                 if re.search("^[0-9]+.*$", date_txt) is not None:
@@ -207,9 +213,13 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
                     sign = 1
                 else:
                     sign = -1
-                greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=12 * number)
+                if start_date is None:
+                    greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=12 * number)
+                else:
+                    greg = datetime.datetime.fromtimestamp(start_date) + sign * relativedelta.relativedelta(months=12 * number)
                 if time_txt is not None:
                     greg = greg.replace(hour=hour, minute=minute, second=second)
+                return int(greg.timestamp())
         for month_pattern in months:
             if month_pattern in date_txt:
                 if re.search("^[0-9]+.*$", date_txt) is not None:
@@ -220,15 +230,22 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
                     sign = 1
                 else:
                     sign = -1
-                greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=number)
+                if start_date is None:
+                    greg = datetime.datetime.now() + sign * relativedelta.relativedelta(months=number)
+                else:
+                    greg = datetime.datetime.fromtimestamp(start_date) + sign * relativedelta.relativedelta(months=number)
                 if time_txt is not None:
                     greg = greg.replace(hour=hour, minute=minute, second=second)
+                return int(greg.timestamp())
         if date_txt == 'پارسال':
             greg = datetime.datetime.now() + relativedelta.relativedelta(months=12)
             if time_txt is not None:
                 greg = greg.replace(hour=hour, minute=minute, second=second)
             print(int(greg.timestamp()))
-        return greg.timestamp()
+            return int(greg.timestamp())
+    else:
+        return None
+
 
 
 def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:

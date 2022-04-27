@@ -187,6 +187,7 @@ class MarkerExtractor(object):
                 token_type = date_token_types[date]
                 date_txt, time_txt = values['date'][date], values['time'][time_k]
                 if token_type == DatetimeType.CRONTIME:
+                    print(date_txt, time_txt)
                     dt_value = evaluate_crontime(date_txt, time_txt)
                     tokens.append(DatetimeToken(token_type, date_txt, time_txt, date, time_k, dt_value))
                 elif token_type == DatetimeType.EXACT:

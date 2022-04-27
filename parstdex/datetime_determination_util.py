@@ -244,23 +244,34 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
 def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
     # TODO this needs evaluation and improvement, it does not cover many cases
     month_pat = 'ماه'
-    day = "روز"
+    monthly = 'ماهانه'
+    day_pat = "روز"
     days_pat = "روزها"
     har = "هر"
     va = "و"
     ta = "تا"
-    if time_txt is None:
-        cron_stamp = "* *"
+    if time_txt is not None:
+        cron_stamp = str(int(time_txt.split(':')[0])) + " " + str(int(time_txt.split(':')[1]))
     else:
-        cron_stamp = time_txt.split(':')[0] + " " + time_txt.split(':')[1]
-    if re.search(f"^.*{har}[ ]+{month_pat}.*$") is not None:
+        cron_stamp = "0 0"
+    if re.search(f"^.*{har}[ ]+{month_pat}.*$", date_txt) is not None or re.search(f"^.*{monthly}.*$", date_txt) is not None:
         # dealing with monthly events
-        if re.search(f"^{day}[ ]+[0-9]+[ ]+{har}.+$", date_txt) is not None:
-            day_number = date_txt.split()[1]
+        days = set()
+        if re.search(f"^{day_pat}[ ]+[0-9]+.+$", date_txt) is not None:
+            days.add(date_txt.split()[1])
+            for i in range(len(date_txt.split())):
+                if date_txt[i] == va:
+                    if date_txt[i - 1].isnumeric():
+                        days.add(date_txt[i - 1])
+                        days.add(date_txt[i + 1])
         else:
-            # multiple days 0__0
-            day_number = "*"
-        cron_stamp = day_number + " " + cron_stamp
+            days.add("*")
+        day_numbers = ""
+        for day_part in days:
+            day_numbers = day_numbers + day_part + ','
+        day_numbers = day_numbers[:-1]
+        cron_stamp = day_numbers + cron_stamp
+
         months = []
         for month in persian_months.keys():
             if month in date_txt:
@@ -276,17 +287,17 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
             month_number = "*"
         cron_stamp = month_number + " " + cron_stamp
         week_days = []
-        if re.search(f"^.*{ta}.*$", date_txt) is not None:
+        if re.search(f"^.*{va}.*$", date_txt) is not None:
             parts = date_txt.split()
             for i in range(len(parts)):
-                if parts[i] == ta:
+                if parts[i] == va:
                     if parts[i - 1] in persian_days.keys():
                         week_days.append(parts[i - 1])
                         week_days.append(parts[i + 1])
         if len(week_days) > 1:
             week_number = ""
             for weekday in week_days:
-                week_number = week_number + str(persian_days[weekday]) + '-'
+                week_number = week_number + str(persian_days[weekday]) + ','
             week_number = month_number[:-1]
         elif len(months) == 1:
             week_number = str(persian_days[week_days[0]])
@@ -295,8 +306,33 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
         cron_stamp = week_number + " " + cron_stamp
         print(cron_stamp)
         return cron_stamp
+    elif re.search(f"^.*{har}.*{day_pat}.*$", date_txt) is not None:
+        if re.search(f"^.*{har}[ ]+[0-9]+[ ]+{day_pat}.*$", date_txt) is not None:
+            for i in range(len(date_txt.split())):
+                if date_txt.split()[i].isnumeric():
+                    if date_txt.split()[i - 1] == har and date_txt.split()[i + 1] == days_pat:
+                        cron_stamp = "*/" + date_txt.split()[i] + cron_stamp
+        else:
+            cron_stamp = "* " + cron_stamp
+        months = []
+        for month in persian_months.keys():
+            if month in date_txt:
+                months.append(month)
+        if len(months) > 1:
+            month_number = ""
+            for month in months:
+                month_number = month_number + str(persian_months[month]) + ','
+            month_number = month_number[:-1]
+        elif len(months) == 1:
+            month_number = str(persian_months[months[0]])
+        else:
+            month_number = "*"
+        cron_stamp = month_number + " " + cron_stamp
+        # i can't think of examples with weekdays involved so i assume * for it
+        cron_stamp = "* " + cron_stamp
+
+        print(cron_stamp)
+        return cron_stamp
     else:
-        # not monthly
-        # i'm sleepy
-        print("ZzZzzz")
-        return -1
+        print("* * * * *")
+        return "* * * * *"

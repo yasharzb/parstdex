@@ -173,7 +173,7 @@ class MarkerExtractor(object):
                 ners.append((input_sentence[span[0]:span[1]], 'O'))
         return ners
 
-    def extract_datetime_tokens(self, input_sentence: str):
+    def extract_datetime_tokens(self, input_sentence: str) -> list:
         values = self.extract_value(input_sentence)
         markers = self.extract_marker(input_sentence)
         tokens = []

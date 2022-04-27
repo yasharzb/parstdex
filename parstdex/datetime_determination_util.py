@@ -101,7 +101,7 @@ class DatetimeToken:
         return str(self)
 
 
-def group_date_time(date_spans: list, time_spans: list):
+def group_date_time(date_spans: list, time_spans: list) -> dict:
     # For each date assign the related times
     date_time_dict = {}
     ds_dir = []

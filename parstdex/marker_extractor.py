@@ -179,14 +179,28 @@ class MarkerExtractor(object):
         date_spans = list(values['date'].keys())
         time_spans = list(values['time'].keys())
         datetime_dict = group_date_time(date_spans, time_spans)
-        ## TODO det_type
-        ## TODO evaluate_time
-        for i in range(len(tokens)):
+        date_token_types = {}
+        for date in datetime_dict.keys():
+            date_token_types[date] = det_type(values['date'][date])
+        for date in datetime_dict.keys():
+            for time_k in datetime_dict[date]:
+                token_type = date_token_types[date]
+                date_txt, time_txt = values['date'][date], values['time'][time_k]
+                if token_type == DatetimeType.CRONTIME:
+                    dt_value = evaluate_crontime(date_txt, time_txt)
+                    tokens.append(DatetimeToken(token_type, date_txt, time_txt, date, time_k, dt_value))
+                elif token_type == DatetimeType.EXACT:
+                    dt_value = evaluate_datetime(token_type, date_txt, time_txt)
+                    tokens.append(DatetimeToken(token_type, date_txt, time_txt, date, time_k, dt_value))
+        tokens_count = len(tokens)
+        for i in range(tokens_count):
             token: DatetimeToken = tokens[i]
             if token.type == DatetimeType.DURATION:
                 prev_token: DatetimeToken = tokens[i - 1]
                 token.value = [prev_token.value, token.value]
-        tokens = [tokens[i] for i in range(len(tokens) - 1) if tokens[i + 1].type != DatetimeType.DURATION]
+                del tokens[i]
+                i -= 1
+                tokens_count -= 1
         return tokens
 
     def extract_test(self, input_sentence: str):

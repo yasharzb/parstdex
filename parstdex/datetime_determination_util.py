@@ -19,12 +19,12 @@ persian_months = {'فروردین': 1,
                   'اسفند': 12}
 
 persian_days = {'شنبه': (1, 'SAT'),
-        'یکشنبه': (2, 'SUN'),
-        'دوشنبه': (3, 'MON'),
-        'سه‌شنبه': (4, 'TUS'),
-        'چهارشنبه': (5, 'WED'),
-        'پنجشنبه': (6, 'THU'),
-        'جمعه': (7, 'FRI')}
+                'یکشنبه': (2, 'SUN'),
+                'دوشنبه': (3, 'MON'),
+                'سه‌شنبه': (4, 'TUS'),
+                'چهارشنبه': (5, 'WED'),
+                'پنجشنبه': (6, 'THU'),
+                'جمعه': (7, 'FRI')}
 
 
 class DatetimeType(enum.Enum):
@@ -34,6 +34,9 @@ class DatetimeType(enum.Enum):
 
     def __str__(self) -> str:
         return self.name.lower()
+
+    def __repr__(self) -> str:
+        return str(self)
 
 
 class TokenSpan:
@@ -48,6 +51,9 @@ class TokenSpan:
     def __str__(self) -> str:
         return f'({self.head},{self.tail})'
 
+    def __repr__(self) -> str:
+        return str(self)
+
     def contains(self, span: "TokenSpan") -> bool:
         return self.head <= span.head and (self.tail >= span.tail or self.tail == -1)
 
@@ -57,19 +63,35 @@ class TokenSpan:
     def get_rtail(self, btail: int = -1) -> "TokenSpan":
         return TokenSpan(f'[{self.tail}, {btail}]')
 
+    def less(self, span: "TokenSpan") -> bool:
+        if self.head < span.head:
+            return True
+        elif self.head > span.head:
+            return False
+        elif self.contains(span):
+            return False
+        return True
+
 
 class DatetimeToken:
 
-    def __init__(self, dt_type: DatetimeType, text: str, span: TokenSpan, value=None):
+    def __init__(self, dt_type: DatetimeType, date_txt: str, time_txt: str, date_span: str, time_span: str, value):
         self.type = dt_type
-        self.text = text
-        self.span = span
+        self.text = f'{date_txt} {time_txt}'
         self.value = value if value else dt_type.value
+        date_span, time_span = TokenSpan(date_span), TokenSpan(time_span)
+        if date_span.less(time_span):
+            self.span = f'[{date_span.head},{time_span.tail}]'
+        else:
+            self.span = f'[{time_span.head},{date_span.tail}]'
 
     def __str__(self) -> str:
-        formatted = {'type': self.type, 'text': self.text,
-                     'span': self.span, 'value': self.value}
-        return json.dumps(formatted)
+        formatted = {'type': str(self.type), 'text': self.text,
+                     'span': str(self.span), 'value': self.value}
+        return json.dumps(formatted, indent=4)
+
+    def __repr__(self) -> str:
+        return str(self)
 
 
 def group_date_time(date_spans: list, time_spans: list):
@@ -114,22 +136,22 @@ def group_date_time(date_spans: list, time_spans: list):
     return date_time_dict
 
 
-def det_type(text: str) -> DatetimeType:
+def det_type(date_txt: str) -> DatetimeType:
     # TODO Regex, pattern ....
 
     # Searching for crontime:
     cron_rgx = ['ها', 'هر', 'سالانه', 'سالیانه', 'ماهانه', 'ماهیانه', 'روزانه']
     for rgx in cron_rgx:
-        if rgx in text:
+        if rgx in date_txt:
             return DatetimeType.CRONTIME
     duration_end_markers_rgx = 'تا|لغایت|الی'
-    x = re.search(f"^.*({duration_end_markers_rgx}).*$", text)
+    x = re.search(f"^.*({duration_end_markers_rgx}).*$", date_txt)
     if x is not None:
         return DatetimeType.DURATION
     return DatetimeType.EXACT
 
 
-def evaluate_datetime(datetime_type: str, date_txt: str = None, time_txt: str = None, date_start=None):
+def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_txt: str = None, date_start: str = None):
     # Evaluate the aboslute value of the corresponding date and time
     yesterday_tomorrow_today = ['دیروز', 'روز گذشته', 'روز پیش', 'فردا', 'امروز']
     years = ['سال پیش', 'سال قبل', 'سال گذشته', 'سال بعد', 'سال آینده']
@@ -151,7 +173,7 @@ def evaluate_datetime(datetime_type: str, date_txt: str = None, time_txt: str = 
             else:
                 greg = datetime.datetime(greg_date.gyear, greg_date.gmonth, greg_date.gday, int(time_parts[0]),
                                          0, 0)
-            print(greg.timestamp())
+            return greg.timestamp()
         elif date_txt is not None:
             if time_txt is None:
                 hour, minute, second = 0, 0, 0
@@ -219,7 +241,7 @@ def evaluate_datetime(datetime_type: str, date_txt: str = None, time_txt: str = 
     return
 
 
-def evaluate_crontime(date_txt: str, time_txt: str = None):
+def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
     # TODO this needs evaluation and improvement, it does not cover many cases
     month_pat = 'ماه'
     day = "روز"
@@ -258,9 +280,9 @@ def evaluate_crontime(date_txt: str, time_txt: str = None):
             parts = date_txt.split()
             for i in range(len(parts)):
                 if parts[i] == ta:
-                    if parts[i-1] in persian_days.keys():
-                        week_days.append(parts[i-1])
-                        week_days.append(parts[i+1])
+                    if parts[i - 1] in persian_days.keys():
+                        week_days.append(parts[i - 1])
+                        week_days.append(parts[i + 1])
         if len(week_days) > 1:
             week_number = ""
             for weekday in week_days:
@@ -272,9 +294,9 @@ def evaluate_crontime(date_txt: str, time_txt: str = None):
             week_number = "*"
         cron_stamp = week_number + " " + cron_stamp
         print(cron_stamp)
+        return cron_stamp
     else:
         # not monthly
         # i'm sleepy
         print("ZzZzzz")
-        pass
-    return
+        return -1

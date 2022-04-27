@@ -160,7 +160,8 @@ def det_type(date_txt: str) -> DatetimeType:
     return DatetimeType.EXACT
 
 
-def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_txt: str = None):
+def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_txt: str = None,
+                      prev_timestamp: int = None):
     # Evaluate the aboslute value of the corresponding date and time
     yesterday_tomorrow_today = ['دیروز', 'روز گذشته', 'روز پیش', 'فردا', 'امروز']
     years = ['سال پیش', 'سال قبل', 'سال گذشته', 'سال بعد', 'سال آینده']
@@ -169,7 +170,7 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
         time_parts = time_txt.split(':')
     if date_txt is not None:
         x = re.search("^[0-9]+/[0-9]+/[0-9]+$", date_txt)
-    #assert datetime_type == DatetimeType.EXACT
+    # assert datetime_type == DatetimeType.EXACT
     if date_txt is not None and x is not None:
         date_parts = date_txt.split('/')
         greg_date = jdatetime.JalaliToGregorian(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]))

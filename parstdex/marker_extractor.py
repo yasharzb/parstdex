@@ -183,14 +183,19 @@ class MarkerExtractor(object):
         date_token_types = {}
         for date in datetime_dict.keys():
             date_token_types[date] = det_type(markers['date'][date])
-        for date in datetime_dict.keys():
+        for i in range(len(date_spans)):
+            date = date_spans[i]
+            if i > 0:
+                prev_timestamp = tokens[i - 1].value
+            else:
+                prev_timestamp = None
             token_type = date_token_types[date]
             if len(datetime_dict[date]) == 0:
-                token = _handle_semi_determined_tokens(token_type, markers, values, date)
+                token = _handle_semi_determined_tokens(token_type, markers, values, date, prev_timestamp)
                 tokens.append(token)
             else:
                 for time_k in datetime_dict[date]:
-                    token = _handle_semi_determined_tokens(token_type, markers, values, date, time_k)
+                    token = _handle_semi_determined_tokens(token_type, markers, values, date, time_k=time_k)
                     tokens.append(token)
         tokens_count = len(tokens)
         for i in range(tokens_count):
@@ -218,15 +223,15 @@ class MarkerExtractor(object):
 
 
 def _handle_semi_determined_tokens(token_type: DatetimeType, markers: dict, values: dict, date: str,
-                                   time_k: str = None):
-    date_txt = markers['date'][date]
+                                   time_k: str = None, prev_timestamp: int = None):
+    date_numeric_txt, date_txt = values['date'][date], markers['date'][date]
     time_numeric_txt = values['time'][time_k] if time_k else None
     time_txt = markers['time'][time_k] if time_k else None
     token: DatetimeToken
     if token_type == DatetimeType.CRONTIME:
-        dt_value = evaluate_crontime(date_txt, time_numeric_txt)
+        dt_value = evaluate_crontime(date_numeric_txt, time_numeric_txt)
         token = DatetimeToken(token_type, dt_value, date_txt, date, time_txt, time_k)
     else:
-        dt_value = evaluate_datetime(token_type, date_txt, time_numeric_txt)
+        dt_value = evaluate_datetime(token_type, date_numeric_txt, time_numeric_txt, prev_timestamp)
         token = DatetimeToken(token_type, dt_value, date_txt, date, time_txt, time_k)
     return token

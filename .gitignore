@@ -8,3 +8,4 @@ docs/_build/*
 docs/_*/*
 build/*
 parstdex.egg-info/*
+venv/Scripts/python.exe

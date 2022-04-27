@@ -50,4 +50,4 @@ def get_tokens(sentence: str):
     print(tokens)
 
 
-get_tokens('هر روز ساعت ۴ صدای گوش خراشی به گوش می‌رسید')
+get_tokens('هر روز صدای گوش خراشی به گوش می‌رسید')

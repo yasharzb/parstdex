@@ -75,20 +75,27 @@ class TokenSpan:
 
 class DatetimeToken:
 
-    def __init__(self, dt_type: DatetimeType, date_txt: str, time_txt: str, date_span: str, time_span: str, value):
+    def __init__(self, dt_type: DatetimeType, value, date_txt: str, date_span: str, time_txt: str = None,
+                 time_span: str = None):
         self.type = dt_type
-        self.text = f'{date_txt} {time_txt}'
+        self.text = f'{date_txt}'
         self.value = value if value else dt_type.value
-        date_span, time_span = TokenSpan(date_span), TokenSpan(time_span)
-        if date_span.less(time_span):
-            self.span = f'[{date_span.head},{time_span.tail}]'
+        date_span = TokenSpan(date_span)
+        if time_span:
+            assert time_txt
+            self.text += f' {time_txt}'
+            time_span = TokenSpan(time_span)
+            if date_span.less(time_span):
+                self.span = TokenSpan(f'[{date_span.head},{time_span.tail}]')
+            else:
+                self.span = TokenSpan(f'[{time_span.head},{date_span.tail}]')
         else:
-            self.span = f'[{time_span.head},{date_span.tail}]'
+            self.span = date_span
 
     def __str__(self) -> str:
         formatted = {'type': str(self.type), 'text': self.text,
                      'span': str(self.span), 'value': self.value}
-        return json.dumps(formatted, indent=4)
+        return json.dumps(formatted, ensure_ascii=False, indent=4)
 
     def __repr__(self) -> str:
         return str(self)
@@ -254,7 +261,8 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
         cron_stamp = str(int(time_txt.split(':')[0])) + " " + str(int(time_txt.split(':')[1]))
     else:
         cron_stamp = "0 0"
-    if re.search(f"^.*{har}[ ]+{month_pat}.*$", date_txt) is not None or re.search(f"^.*{monthly}.*$", date_txt) is not None:
+    if re.search(f"^.*{har}[ ]+{month_pat}.*$", date_txt) is not None or re.search(f"^.*{monthly}.*$",
+                                                                                   date_txt) is not None:
         # dealing with monthly events
         days = set()
         if re.search(f"^{day_pat}[ ]+[0-9]+.+$", date_txt) is not None:

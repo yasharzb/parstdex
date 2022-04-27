@@ -224,10 +224,10 @@ def _handle_semi_determined_tokens(date_token_types: dict, markers: dict, values
     if token_type == DatetimeType.CRONTIME:
         print(date_txt, time_txt)
         dt_value = evaluate_crontime(date_txt, time_txt)
-        token = DatetimeToken(token_type, date_txt, time_txt, date, time_k, dt_value)
+        token = DatetimeToken(token_type, dt_value, date_txt, date, time_txt, time_k)
     elif token_type == DatetimeType.EXACT:
         dt_value = evaluate_datetime(token_type, date_txt, time_txt)
-        token = DatetimeToken(token_type, date_txt, time_txt, date, time_k, dt_value)
+        token = DatetimeToken(token_type, dt_value, date_txt, date, time_txt, time_k)
     else:
         token = None
     return token

@@ -4,7 +4,7 @@ import re
 import jdatetime
 import datetime
 
-import unidecode as unidecode
+from unidecode import unidecode
 from dateutil import relativedelta
 
 persian_months = {'فروردین': 1,
@@ -186,7 +186,7 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
             greg = datetime.datetime(greg_date.gyear, greg_date.gmonth, greg_date.gday, int(time_parts[0]),
                                      int(time_parts[1]), int(time_parts[2]))
         else:
-            greg = datetime.datetime(greg_date.gyear, greg_date.gmonth, greg_date.gday, int(time_parts[0]),
+            greg = datetime.datetime(greg_date.gyear, greg_date.gmonth, greg_date.gday, 0,
                                      0, 0)
         return int(greg.timestamp())
     elif date_txt is not None:
@@ -251,7 +251,6 @@ def evaluate_datetime(datetime_type: DatetimeType, date_txt: str = None, time_tx
             return int(greg.timestamp())
     else:
         return None
-
 
 
 def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
@@ -351,7 +350,23 @@ def evaluate_crontime(date_txt: str, time_txt: str = None) -> str:
         return cron_stamp
     elif re.search(f"^.*{har}[ ]+.*شنبه.*$", date_txt) is not None or re.search(f"^.*{har}[ ]+جمعه.*$",
                                                                                 date_txt) is not None:
-        cron_stamp = "* * " + cron_stamp
+        if time_txt is None:
+            cron_stamp = "* *"
+        cron_stamp = "* " + cron_stamp
+        months = []
+        for month in persian_months.keys():
+            if month in date_txt:
+                months.append(month)
+        if len(months) > 1:
+            month_number = ""
+            for month in months:
+                month_number = month_number + str(persian_months[month]) + ','
+            month_number = month_number[:-1]
+        elif len(months) == 1:
+            month_number = str(persian_months[months[0]])
+        else:
+            month_number = "*"
+        cron_stamp = month_number + " " + cron_stamp
         week_days = []
         if re.search(f"^.*{va}.*$", date_txt) is not None:
             parts = date_txt.split()
